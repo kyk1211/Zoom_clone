@@ -14,11 +14,15 @@ app.get('/*', (_, res) => res.redirect('/'));
 const server = http.createServer(app);
 const io = SocketIo(server);
 
-
-
-function onSocketClose() {
-  console.log("Disconnected from the Browser ❌");
-}
+io.on('connection', (socket) => {
+  socket.onAny((e) => {
+    console.log(`socket Event: ${e}`)
+  });
+  socket.on('enter_room', (roomName, done) => {
+    socket.join(roomName);
+    done();
+  });
+});
 
 /* WebSocket */
 // const wss = new WebSocket.Server({ server });
