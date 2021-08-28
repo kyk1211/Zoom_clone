@@ -30,6 +30,9 @@ function handleSumbit(e) {
   e.preventDefault();
   const input = msgForm.querySelector("input");
   frontSocket.send(makeMsg("new_msg", input.value));
+  const li = document.createElement("li");
+  li.innerText = `You: ${input.value}`;
+  msgList.append(li);
   input.value = "";
 }
 

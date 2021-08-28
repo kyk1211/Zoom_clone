@@ -31,7 +31,9 @@ wss.on('connection', (backSocket) => {
     const msgString = msgObj.payload;
     switch(msgObj.type) {
       case "new_msg":
-        sockets.forEach((aSocket) => aSocket.send(`${backSocket.nickname}: ${msgString}`));
+        sockets.forEach((aSocket) => 
+          aSocket.send(`${backSocket.nickname}: ${msgString}`)
+        );
         break;
       case "nickname":
         backSocket["nickname"] = msgString;
