@@ -99,17 +99,18 @@ const welcomeForm = welcome.querySelector('form');
 
 call.hidden = true;
 
-async function startMedia() {
+async function initCall() {
   welcome.hidden = true;
   call.hidden = false;
   await getMedia();
   makeConnection();
 }
 
-function handleWelcomeSubmit(e) {
+async function handleWelcomeSubmit(e) {
   e.preventDefault();
   const input = welcomeForm.querySelector('input');
-  socket.emit('join_room', input.value, startMedia);
+  await initCall();
+  socket.emit('join_room', input.value);
   roomName = input.value;
   input.value = '';
 }
@@ -118,6 +119,7 @@ welcomeForm.addEventListener('submit', handleWelcomeSubmit);
 
 //socket code
 
+// browser1
 socket.on('welcome', async () => {
   const offer = await myPeerConnection.createOffer();
   myPeerConnection.setLocalDescription(offer);
@@ -125,8 +127,17 @@ socket.on('welcome', async () => {
   socket.emit('offer', offer, roomName);
 });
 
-socket.on('offer', (offer) => {
-  console.log(offer);
+// browser2
+socket.on('offer', async (offer) => {
+  myPeerConnection.setRemoteDescription(offer);
+  const answer = await myPeerConnection.createAnswer();
+  myPeerConnection.setLocalDescription(answer);
+  socket.emit('answer', answer, roomName);
+});
+
+// browser1
+socket.on('answer', (answer) => {
+  myPeerConnection.setRemoteDescription(answer);
 });
 
 // RTC Code
