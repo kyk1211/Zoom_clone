@@ -7,8 +7,8 @@ const cameraBtn = document.getElementById('camera');
 const cameraSelect = document.getElementById('cameras');
 
 let myStream;
-let muted = false;
-let cameraOff = false;
+let muted;
+let cameraOff;
 let roomName;
 let myPeerConnection;
 
@@ -60,7 +60,10 @@ async function getMedia(deviceId) {
 function handleMuteBtn() {
   myStream
   .getAudioTracks()
-  .forEach((track) => (track.enabled = !track.enabled));
+  .forEach((track) => {
+    track.enabled = !track.enabled;
+    muted = track.enabled;
+  });
   if(!muted) {
     muteBtn.innerText = 'Unmute';
     muted = true;
@@ -73,7 +76,10 @@ function handleMuteBtn() {
 function handleCameraBtn() {
   myStream
   .getVideoTracks()
-  .forEach((track) => (track.enabled = !track.enabled));
+  .forEach((track) => {
+    track.enabled = !track.enabled;
+    cameraOff = track.enabled;
+  });
   if(cameraOff) {
     cameraBtn.innerText = 'Turn Camera Off';
     cameraOff = false;
@@ -84,6 +90,8 @@ function handleCameraBtn() {
 }
 
 async function handleCameraChange() {
+  muteBtn.innerText = 'Mute';
+  cameraBtn.innerText = 'Turn Camera Off';
   await getMedia(cameraSelect.value);
   if (myPeerConnection) {
     const videoTrack = myStream.getVideoTracks()[0];
@@ -158,7 +166,19 @@ socket.on('ice', (ice) => {
 // RTC Code
 
 function makeConnection() {
-  myPeerConnection = new RTCPeerConnection();
+  myPeerConnection = new RTCPeerConnection({
+    iceServers: [
+      {
+        urls: [
+          "stun:stun.l.google.com:19302",
+          "stun:stun1.l.google.com:19302",
+          "stun:stun2.l.google.com:19302",
+          "stun:stun3.l.google.com:19302",
+          "stun:stun4.l.google.com:19302",
+        ],
+      },
+    ],
+  });
   myPeerConnection.addEventListener('icecandidate', handleIce);
   myPeerConnection.addEventListener('addstream', handleAddStream);
   myStream
