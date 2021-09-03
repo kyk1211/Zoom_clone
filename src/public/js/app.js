@@ -118,6 +118,7 @@ call.hidden = true;
 async function initCall() {
   welcome.hidden = true;
   call.hidden = false;
+  chatDiv.hidden = false;
   await getMedia();
   makeConnection();
 }
@@ -133,12 +134,35 @@ async function handleWelcomeSubmit(e) {
 
 welcomeForm.addEventListener('submit', handleWelcomeSubmit);
 
-//socket code
+// chating dataChannel
 
+const chatDiv = document.getElementById('chatDiv');
+const chatForm = document.getElementById('chatForm');
+const chatButton = chatForm.querySelector('button');
+const chatList = document.getElementById('chatList');
+
+chatDiv.hidden = true;
+
+function sendMsg() {
+  const input = chatForm.querySelector('input');
+  myDataChannel.send(input.value);
+  const li = document.createElement('li');
+  li.innerText = `You: ${input.value}`;
+  chatList.appendChild(li);
+  input.value = '';
+}
+
+chatButton.addEventListener('click', sendMsg);
+
+// socket code
 // peer1
 socket.on('welcome', async () => {
   myDataChannel = myPeerConnection.createDataChannel('chat');
-  myDataChannel.addEventListener('message', console.log);
+  myDataChannel.addEventListener('message', (e) => {
+    const li = document.createElement('li');
+    li.innerText = e.data;
+    chatList.appendChild(li);
+  });
   console.log('made data channel');
   const offer = await myPeerConnection.createOffer();
   myPeerConnection.setLocalDescription(offer);
@@ -150,7 +174,11 @@ socket.on('welcome', async () => {
 socket.on('offer', async (offer) => {
   myPeerConnection.addEventListener('datachannel', (e) => {
     myDataChannel = e.channel;
-    myDataChannel.addEventListener('message', console.log);
+    myDataChannel.addEventListener('message', (e) => {
+      const li = document.createElement('li');
+      li.innerText = e.data;
+      chatList.appendChild(li);
+    });
   });
   console.log('received the offer');
   myPeerConnection.setRemoteDescription(offer);
